@@ -727,7 +727,7 @@ type Blog struct {
 3. 添加自己的逻辑
 4. 编写视频微服务的api服务的api文件
 5. 生成代码
-6. 完善依赖，配置
+6. 完善依赖，配置（api中添加rpc配置）
 7. 添加自己的逻辑
 
 ![img](./images/Go-Framworks.assets/20231026152242.png)
@@ -768,6 +768,8 @@ service User {
 ```sh
 goctl rpc protoc ./user.proto --go_out=./types --go-grpc_out=./types --zrpc_out=./
 ```
+
+生成的代码里 yaml 配置文件中自动填写了 etcd 的配置信息
 
 在 `user/rpc/internal/logic/getuserlogic.go` 填写必要的逻辑：
 
@@ -810,7 +812,7 @@ goctl api go -api ./video.api -dir ./
 
 
 
-### 调用user rpc
+### api 调用 user rpc
 
 - 添加 user rpc 配置：
 
@@ -895,6 +897,839 @@ curl 127.0.0.1:8888/api/videos/1
 
 
 
+## API 定义
+
+API 语法规范：https://go-zero.dev/docs/tutorials
+
+### 类型声明
+
+1. 类型声明必须以 `type` 开头
+2. 不需要声明 `struct`关键字
+3. 不支持嵌套结构体声明（不能在一个结构体中声明另一个字结构体，可以提前声明一个结构体后嵌套调用）
+4. 不支持别名
+5. 暂时不支持泛型、弱类型，如 `any` 类型
+
+
+
+### 路由前缀
+
+通过 @server 语法块的`prefix` 关键字
+
+```go
+@server (
+    prefix: /v1
+)
+service user-api {
+    @handler usersv1
+    get /users returns ([]UserV1)
+}
+
+@server (
+    prefix: /v2
+)
+service user-api {
+    @handler usersv2
+    get /users returns ([]UserV2)
+}
+```
+
+
+
+### 服务分组
+
+通过 @server 语法块的`group` 关键字
+
+```go
+@server (
+    prefix: /v1
+    group:  user
+)
+service user-api {
+    @handler UserLogin
+    post /user/login (UserLoginReq) returns (UserLoginResp)
+}
+
+@server (
+    prefix: /v1
+    group:  role
+)
+service user-api {
+    @handler UserRoleList
+    get /user/role/list returns ([]UserRoleResp)
+}
+
+@server (
+    prefix: /v1
+    group:  class
+)
+service user-api {
+    @handler UserClassList
+    get /user/class/list returns ([]UserClassResp)
+}
+```
+
+
+
+### 签名开关
+
+通过 @server 语法块的`signature` 关键字
+
+```go
+@server (
+    signature: true // 通过 signature 关键字开启签名功能
+)
+service sign-api {
+    @handler SignDemo
+    post /sign/demo (SignDemoReq) returns (SignDemoResp)
+}
+```
+
+
+
+### 开启JWT认证
+
+通过 @server 语法块的`jwt` 关键字
+
+```go
+@server (
+    jwt: Auth // 开启 jwt 认证
+)
+service user-api {
+    @handler userInfo
+    post /user/info (UserInfoReq) returns (UserInfoResp)
+}
+```
+
+该 jwt 认证仅对其对应的路由有用
+
+
+
+修改配置文件：
+
+```yaml
+Name: users
+Host: 0.0.0.0
+Port: 8888
+Auth:
+  AccessSecret: cwaiugebvaihdfw
+  AccessExpire: 3600 # 秒
+```
+
+
+
+### 路由规则
+
+在 api 描述语言中，路由需要满足如下规则
+
+1. 路由必须以 `/` 开头
+2. 路由节点必须以 `/` 分隔
+3. 路由节点中可以包含 `:`，但是 `:` 必须是路由节点的第一个字符，`:` 后面的节点值必须要在结请求体中有 `path` tag 声明，用于接收路由参数，详细规则可参考 [路由参数](https://go-zero.dev/docs/tutorials/api/parameter)。
+4. 路由节点可以包含字母、数字(`goctl 1.5.1` 支持，可参考[ 新版 API 解析器使用](https://go-zero.dev/docs/tutorials/api/faq#1-怎么体验新的-api-特性))、下划线、中划线
+
+```go
+syntax = "v1"
+
+type DemoPath3Req {
+    Id int64 `path:"id"`
+}
+
+type DemoPath4Req {
+    Id   int64  `path:"id"`
+    Name string `path:"name"`
+}
+
+type DemoPath5Req {
+    Id   int64  `path:"id"`
+    Name string `path:"name"`
+    Age  int    `path:"age"`
+}
+
+type DemoReq {}
+
+type DemoResp {}
+
+service Demo {
+    // 示例路由 /foo
+    @handler demoPath1
+    get /foo (DemoReq) returns (DemoResp)
+
+    // 示例路由 /foo/bar
+    @handler demoPath2
+    get /foo/bar (DemoReq) returns (DemoResp)
+
+    // 示例路由 /foo/bar/:id，其中 id 为请求体中的字段
+    @handler demoPath3
+    get /foo/bar/:id (DemoPath3Req) returns (DemoResp)
+
+    // 示例路由 /foo/bar/:id/:name，其中 id，name 为请求体中的字段
+    @handler demoPath4
+    get /foo/bar/:id/:name (DemoPath4Req) returns (DemoResp)
+
+    // 示例路由 /foo/bar/:id/:name/:age，其中 id，name，age 为请求体中的字段
+    @handler demoPath5
+    get /foo/bar/:id/:name/:age (DemoPath5Req) returns (DemoResp)
+
+    // 示例路由 /foo/bar/baz-qux
+    @handler demoPath6
+    get /foo/bar/baz-qux (DemoReq) returns (DemoResp)
+
+    // 示例路由 /foo/bar_baz/123(goctl 1.5.1 支持)
+    @handler demoPath7
+    get /foo/bar_baz/123 (DemoReq) returns (DemoResp)
+}
+```
+
+
+
+### 参数规则
+
+参数接收规则：
+
+| 接收规则 | 说明                                                         | 生效范围      | 接收tag示例             | 请求示例                                            |
+| -------- | ------------------------------------------------------------ | ------------- | ----------------------- | --------------------------------------------------- |
+| json     | json 序列化                                                  | 请求体&响应体 | json:"foo"              | {"key":"vulue"}                                     |
+| path     | 路由参数                                                     | 请求体        | path:"id"               | /foo/:id                                            |
+| form     | post 请求的表单(支持 content-type 为 `form-data` 和 `x-www-form-urlencoded`) 参数请求接收标识，get 请求的 query 参数接收标识 | 请求体        | form:"name"             | GET /search?key=vulue                               |
+| header   | http 请求体接收标识                                          | 请求体        | header:"Content-Length" | origin: [https://go-zero.dev](https://go-zero.dev/) |
+
+
+
+参数校验规则：
+
+参数校验的规则仅对 **请求体** 有效，参数校验的规则写在 tag value中，目前 go-zero 支持的参数校验规则如下：
+
+| 校验规则 | 说明                                                         | 示例                            |
+| -------- | ------------------------------------------------------------ | ------------------------------- |
+| optional | 当前字段是可选参数，允许为零值(zero value)                   | `json:"foo,optional"`           |
+| options  | 当前参数仅可接收的枚举值                                     | `json:"gender,options=foo|bar"` |
+| default  | 当前参数默认值                                               | `json:"gender,default=male"`    |
+| range    | 当前参数数值有效范围，仅对数值有效，写法规则详情见下文温馨提示 | `json:"age,range=[0:120]"`      |
+
+range 的括号可开可闭
+
+
+
+### 中间件声明
+
+通过 @server 语法块的`middleware` 关键字
+
+```go
+@server(
+    // 通过 middileware 关键字声明中间件，多个中间件以英文逗号分割，如 UserAgentMiddleware,LogMiddleware
+    middleware: UserAgentMiddleware
+)
+service user {
+    @handler userinfo
+    get /user/info/:id (UserInfoRequest) returns (UserInfoResponse)
+}
+```
+
+通过 goctl 生成的代码中，就有一个 `middleware` 目录，可在函数 `Handle` 中添加自己的处理逻辑：
+
+Useragentmiddleware.go:
+
+```go
+func (m *UserAgentMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        // TODO generate middleware implement function, delete after code implementation
+
+        // Passthrough to next handler if need
+        next(w, r)
+    }
+}
+```
+
+
+
+### API Import
+
+Base.api:
+
+```go
+syntax =  "v1"
+
+type Base {
+    Code int    `json:"code"`
+    Msg  string `json:"msg"`
+}
+```
+
+user.api:
+
+```go
+syntax = "v1"
+
+// 引入 base.api 文件
+// import. "./base.api"
+import "base.api"
+```
+
+注意事项：
+
+- 支持绝对路径和相对路径
+- 只有 main api 可以出现 service 语法块，被引入的 api 文件中不行
+
+
+
+### 格式化
+
+```sh
+goctl api format -dir <api.api>
+```
+
+
+
+
+
+### 根据 API 文件生成代码
+
+```sh
+# goctl api go api <api_file> -dir <target_dir>
+goctl api go -api ./video.api -dir ./
+```
+
+
+
+## Proto 定义
+
+Proto 语法规范：https://developers.google.com/protocol-buffers/docs/gotutorial
+
+### 类型声明
+
+1. 允许嵌套声明
+2. 编写的所有 rpc 方法的请求体和响应体必须在主 proto 中声明 message，即不支持从外包外 message
+3. 不支持使用包外 proto 和 service
+
+
+
+### 服务分组
+
+没分组：
+
+```protobuf
+message ...
+
+service UserService{
+  rpc UserInfo (UserInfoReq) returns (UserInfoResp);
+
+  rpc UserRoleList (UserRoleListReq) returns (UserRoleListResp);
+
+  rpc UserClassList (UserClassListReq) returns (UserClassListResp);
+}
+```
+
+```sh
+goctl rpc protoc user.proto --go_out=. --go-grpc_out=. --zrpc_out=.
+```
+
+分组后：
+
+```protobuf
+message ...
+service UserService{
+  rpc UserInfo (UserInfoReq) returns (UserInfoResp);
+}
+
+message ...
+service UserRoleService{
+  rpc UserRoleList (UserRoleListReq) returns (UserRoleListResp);
+}
+
+message ...
+service UserClassService{
+  rpc UserClassList (UserClassListReq) returns (UserClassListResp);
+}
+```
+
+添加 -m 参数
+
+```sh
+goctl rpc protoc user.proto --go_out=. --go-grpc_out=. --zrpc_out=. -m
+```
+
+
+
+### 根据 proto 文件生成代码
+
+没分组：
+
+```sh
+goctl rpc protoc user.proto --go_out=. --go-grpc_out=. --zrpc_out=.
+```
+
+分组：
+
+```sh
+goctl rpc protoc user.proto --go_out=. --go-grpc_out=. --zrpc_out=. -m
+```
+
+
+
+## Model 生成和使用
+
+> goctl model 详细参数解析：https://go-zero.dev/docs/tutorials/cli/model
+
+### 生成的结构体之间的区别
+
+api 生成的结构体相当于 VO：Value Object
+
+rpc 生成的结构体相当于 DTO：Data Transfer Object
+
+model 生成的结构体相当于 PO：Persistent Object
+
+### MySQL 配合 Redis
+
+编写一个 sql 文件，如 user.sql ，其中写入建表语句，放到合适的目录下，如 .../model/mysql
+
+```sh
+goctl model mysql ddl --src user.sql --dir .
+```
+
+若要带上Redis缓存，则执行一下命令生成代码：-c 参数代表带缓存
+
+```sh
+goctl model mysql ddl --src user.sql --dir . -c
+```
+
+在操作数据的代码中添加mysql和redis配置，如我这里是rpc操作数据库：
+
+user/rpc/internal/config/config.go: 
+
+```go
+type Config struct {
+	zrpc.RpcServerConf
+
+	Mysql struct {
+		DataSource string
+	}
+
+	CacheRedis cache.CacheConf	// 如果带缓存
+}
+```
+
+user/rpc/etc/user.yaml: 
+
+```yaml
+Name: user.rpc
+ListenOn: 0.0.0.0:9000
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: user.rpc
+
+Mysql:
+  DataSource: root:123456@tcp(127.0.0.1:3306)/mall?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: 127.0.0.1:6379
+    Pass: "123456"
+    Type: node
+```
+
+user/rpc/internal/svc/servicecontext.go: 
+
+```go
+type ServiceContext struct {
+	Config config.Config
+
+	UserModel model.UserModel
+}
+
+func NewServiceContext(c config.Config) *ServiceContext {
+	conn := sqlx.NewMysql(c.Mysql.DataSource)
+	return &ServiceContext{
+		Config:    c,
+		UserModel: model.NewUserModel(conn, c.CacheRedis),
+	}
+}
+```
+
+
+
+### MongoDB
+
+在合适的目录下：如 .../model/mongo ，执行下列命令：
+
+```sh
+goctl model mongo --type user --dir .
+```
+
+然后在 usertypes.go 文件中添加自己的 fileds：
+
+```go
+type User struct {
+    ID primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+    // TODO: Fill your own fields
+    UpdateAt time.Time `bson:"updateAt,omitempty" json:"updateAt,omitempty"`
+    CreateAt time.Time `bson:"createAt,omitempty" json:"createAt,omitempty"`
+}
+```
+
+
+
+## common service
+
+### 密码加密存储
+
+common/cryptx/crypt.go: 
+
+```go
+package cryptx
+
+import (
+	"fmt"
+
+	"golang.org/x/crypto/scrypt"
+)
+
+// PasswordEncrypt 密码加密：给需要存储的密码加盐，转换为不可逆的散列值
+func PasswordEncrypt(salt, password string) string {
+	dk, _ := scrypt.Key([]byte(password), []byte(salt), 32768, 8, 1, 32)
+	return fmt.Sprintf("%x", dk)
+}
+```
+
+service/user/rpc/etc.yaml: 
+
+```yaml
+...
+Salt: HwVOFkGgPgVrEICwd7qnJaZR9KQ2i8xe
+```
+
+service/user/rpc/internal/config/config.go: 
+
+```go
+type Config struct {
+	zrpc.RpcServerConf
+	...
+	
+	Salt       string
+}
+```
+
+使用方式：
+
+```go
+cryptx.PasswordEncrypt(l.svcCtx.Config.Salt, in.Password)
+```
+
+
+
+### jwt
+
+user.api: 通过 @server 语法块的`jwt` 关键字
+
+```go
+@server (
+    jwt: Auth // 开启 jwt 认证
+)
+service user-api {
+    @handler userInfo
+    post /user/info (UserInfoReq) returns (UserInfoResp)
+}
+```
+
+该 jwt 认证仅对其对应的路由有用
+
+common/jwtx/jwt.go: 
+
+```go
+package jwtx
+
+import "github.com/golang-jwt/jwt/v4"
+
+func GetToken(secretKey string, iat, seconds, uid int64) (string, error) {
+    claims := make(jwt.MapClaims)
+    claims["exp"] = iat + seconds
+    claims["iat"] = iat
+    claims["uid"] = uid
+    token := jwt.New(jwt.SigningMethodHS256)
+    token.Claims = claims
+    return token.SignedString([]byte(secretKey))
+}
+```
+
+service/user/api/etc/user.yaml: 
+
+```yaml
+Auth:
+  AccessSecret: uOvKLmVfz3vesDNYd4Z0I1SiT7MweJhl
+  AccessExpire: 86400
+```
+
+service/user/api/internal/config/config.go: 
+
+```go
+type Config struct {
+	rest.RestConf
+	Auth struct {
+		AccessSecret string
+		AccessExpire int64
+	}
+	...
+}
+```
+
+使用方式：
+
+internal/logic/loginlogic.go: 
+
+```go
+func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
+	// ... 登陆验证逻辑完成后
+	now := time.Now().Unix()
+	accessExpire := l.svcCtx.Config.Auth.AccessExpire
+
+	accessToken, err := jwtx.GetToken(l.svcCtx.Config.Auth.AccessSecret, now, accessExpire, res.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.LoginResponse{
+		AccessToken:  accessToken,
+		AccessExpire: now + accessExpire,
+	}, nil
+}
+```
+
+
+
+载体信息获取方式（如 uid）：
+jwt 通常可以携带一些自定义信息，比如 server 端生成 jwt key 时添加了 `custom-key` 值，go-zero 在解析后会将所有载体放到 context 中，开发者可以 通过如下示例获取载体信息。
+
+```go
+func (l *UserInfoLogic) UserInfo(req *types.UserInfoReq) (resp *types.UserInfoResp, err error) {
+    // 获取 jwt 载体信息
+    uid:=l.ctx.Value("uid")
+    return
+}
+```
+
+
+
+JWT 认证失败自定义处理返回：
+
+在main.go中定义一个callback即可：
+
+```go
+func main() {
+    ........
+
+    server := rest.MustNewServer(c.RestConf, rest.WithUnauthorizedCallback(func(w http.ResponseWriter, r *http.Request, err error) {
+        // 自定义处理返回
+    }))
+
+    .......
+}
+```
+
+
+
+
+
+## Reference Links
+
+> - https://go-zero.dev/
+> - https://www.fengfengzhidao.com/article/PNndcYsBEG4v2tWkOG3k
+
+
+
+# gRPC基础使用
+
+## Protobuf语法
+
+// TBD
+
+
+
+## gRPC Hello World
+
+example 链接：https://github.com/grpc/grpc-go/tree/v1.67.0/examples/helloworld
+
+[helloworld.proto](https://github.com/grpc/grpc-go/blob/v1.67.0/examples/helloworld/helloworld/helloworld.proto):
+
+```protobuf
+syntax = "proto3";
+
+option go_package = "google.golang.org/grpc/examples/helloworld/helloworld";
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.helloworld";
+option java_outer_classname = "HelloWorldProto";
+
+package helloworld;
+
+// The request message containing the user's name.
+message HelloRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message HelloReply {
+  string message = 1;
+}
+
+// The greeting service definition.
+service Greeter {
+  // Sends a greeting
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+}
+```
+
+生成代码：会自动生成 [helloworld.pb.go](https://github.com/grpc/grpc-go/blob/v1.67.0/examples/helloworld/helloworld/helloworld.pb.go) 和 [helloworld_grpc.pb.go](https://github.com/grpc/grpc-go/blob/v1.67.0/examples/helloworld/helloworld/helloworld_grpc.pb.go)
+```sh
+protoc --go_out=. --go-grpc_out=. <path/to/your/proto/file.proto>
+```
+
+
+
+rpc_server:
+
+```go
+// Package main implements a server for Greeter service.
+package main
+
+import (
+	"context"
+	"flag"
+	"fmt"
+	"log"
+	"net"
+
+	"google.golang.org/grpc"
+	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+)
+
+var (
+	port = flag.Int("port", 50051, "The server port")
+)
+
+// server is used to implement helloworld.GreeterServer.
+type server struct {
+	pb.UnimplementedGreeterServer
+}
+
+// SayHello implements helloworld.GreeterServer
+func (s *server) SayHello(_ context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+	log.Printf("Received: %v", in.GetName())
+	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
+}
+
+func main() {
+	flag.Parse()
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	s := grpc.NewServer()
+	pb.RegisterGreeterServer(s, &server{})
+	log.Printf("server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+}
+```
+
+
+
+rpc_client: 
+
+```go
+// Package main implements a client for Greeter service.
+package main
+
+import (
+	"context"
+	"flag"
+	"log"
+	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+)
+
+const (
+	defaultName = "world"
+)
+
+var (
+	addr = flag.String("addr", "localhost:50051", "the address to connect to")
+	name = flag.String("name", defaultName, "Name to greet")
+)
+
+func main() {
+	flag.Parse()
+	// Set up a connection to the server.
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := pb.NewGreeterClient(conn)
+
+	// Contact the server and print out its response.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: *name})
+	if err != nil {
+		log.Fatalf("could not greet: %v", err)
+	}
+	log.Printf("Greeting: %s", r.GetMessage())
+}
+```
+
+
+
+## 简单RPC与流式RPC
+
+使用示例：https://github.com/grpc/grpc-go/tree/v1.67.0/examples/route_guide
+
+1. 简单RPC
+
+   客户端使用存根发送请求到服务器并等待响应返回，就像平常的函数调用一样。
+
+   ```protobuf
+   rpc GetFeature(Point) returns (Feature) {}
+   ```
+
+2. 客户端流式RPC
+
+   客户端写入一个消息序列并将其发送到服务器，同样也是使用流。一旦客户端完成写入消息，它等待服务器完成读取返回它的响应。通过在 *请求* 类型前指定 `stream` 关键字来指定一个客户端的流方法。
+
+   ```protobuf
+    rpc RecordRoute(stream Point) returns (RouteSummary) {}
+   ```
+
+3. 服务器流式RPC
+
+   客户端发送请求到服务器，拿到一个流去读取返回的消息序列。 客户端读取返回的流，直到里面没有任何消息。从例子中可以看出，通过在 *响应* 类型前插入 `stream` 关键字，可以指定一个服务器端的流方法。
+
+   ```protobuf
+   rpc ListFeatures(Rectangle) returns (stream Feature) {}
+   ```
+
+4. 双向流式RPC（全双工RPC）
+
+   双方使用读写流去发送一个消息序列。两个流独立操作，因此客户端和服务器可以以任意喜欢的顺序读写：比如， 服务器可以在写入响应前等待接收所有的客户端消息，或者可以交替的读取和写入消息，或者其他读写的组合。 每个流中的消息顺序被预留。你可以通过在请求和响应前加 `stream` 关键字去制定方法的类型。
+
+   ```protobuf
+   rpc RouteChat(stream RouteNote) returns (stream RouteNote) {}
+   ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -909,23 +1744,7 @@ curl 127.0.0.1:8888/api/videos/1
 
 ## Reference Links
 
-> - https://www.fengfengzhidao.com/article/PNndcYsBEG4v2tWkOG3k
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+> - https://www.topgoer.com/%E5%BE%AE%E6%9C%8D%E5%8A%A1/Protobuf%E8%AF%AD%E6%B3%95.html
+> - https://doc.oschina.net/grpc?t=60133
+> - https://github.com/grpc/grpc-go
 
