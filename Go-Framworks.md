@@ -1,8 +1,8 @@
 [TOC]
 
-#  Gin基础使用
+# Gin基础使用
 
-##  Gin路由
+## Gin路由
 
 ### 普通路由
 
@@ -22,7 +22,7 @@ r.Any("/test", func(c *gin.Context) {...})
 
 ```go
 r.NoRoute(func(c *gin.Context) {
-	c.HTML(http.StatusNotFound, "views/404.html", nil)
+    c.HTML(http.StatusNotFound, "views/404.html", nil)
 })
 ```
 
@@ -32,21 +32,21 @@ r.NoRoute(func(c *gin.Context) {
 
 ```go
 func main() {
-	r := gin.Default()
-	userGroup := r.Group("/user")
-	{
-		userGroup.GET("/index", func(c *gin.Context) {...})
-		userGroup.GET("/login", func(c *gin.Context) {...})
-		userGroup.POST("/login", func(c *gin.Context) {...})
+    r := gin.Default()
+    userGroup := r.Group("/user")
+    {
+        userGroup.GET("/index", func(c *gin.Context) {...})
+        userGroup.GET("/login", func(c *gin.Context) {...})
+        userGroup.POST("/login", func(c *gin.Context) {...})
 
-	}
-	shopGroup := r.Group("/shop")
-	{
-		shopGroup.GET("/index", func(c *gin.Context) {...})
-		shopGroup.GET("/cart", func(c *gin.Context) {...})
-		shopGroup.POST("/checkout", func(c *gin.Context) {...})
-	}
-	r.Run()
+    }
+    shopGroup := r.Group("/shop")
+    {
+        shopGroup.GET("/index", func(c *gin.Context) {...})
+        shopGroup.GET("/cart", func(c *gin.Context) {...})
+        shopGroup.POST("/checkout", func(c *gin.Context) {...})
+    }
+    r.Run()
 }
 ```
 
@@ -54,19 +54,17 @@ func main() {
 
 ```go
 shopGroup := r.Group("/shop")
-	{
-		shopGroup.GET("/index", func(c *gin.Context) {...})
-		shopGroup.GET("/cart", func(c *gin.Context) {...})
-		shopGroup.POST("/checkout", func(c *gin.Context) {...})
-		// 嵌套路由组
-		xx := shopGroup.Group("xx")
-		xx.GET("/oo", func(c *gin.Context) {...})
-	}
+    {
+        shopGroup.GET("/index", func(c *gin.Context) {...})
+        shopGroup.GET("/cart", func(c *gin.Context) {...})
+        shopGroup.POST("/checkout", func(c *gin.Context) {...})
+        // 嵌套路由组
+        xx := shopGroup.Group("xx")
+        xx.GET("/oo", func(c *gin.Context) {...})
+    }
 ```
 
 通常我们将路由分组用在划分业务逻辑或划分API版本时。
-
-
 
 ## 重定向
 
@@ -76,7 +74,7 @@ HTTP 重定向很容易。 内部、外部重定向均支持。
 
 ```go
 r.GET("/test", func(c *gin.Context) {
-	c.Redirect(http.StatusMovedPermanently, "http://www.sogo.com/")
+    c.Redirect(http.StatusMovedPermanently, "http://www.sogo.com/")
 })
 ```
 
@@ -97,8 +95,6 @@ r.GET("/test2", func(c *gin.Context) {
 
 Gin框架允许开发者在处理请求的过程中，加入用户自己的钩子（Hook）函数。这个钩子函数就叫中间件，中间件适合处理一些公共的业务逻辑，比如登录认证、权限校验、数据分页、记录日志、耗时统计等。
 
-
-
 ## 参数解析
 
 ### querystring
@@ -107,20 +103,20 @@ Gin框架允许开发者在处理请求的过程中，加入用户自己的钩�
 
 ```go
 func main() {
-	//Default返回一个默认的路由引擎
-	r := gin.Default()
-	r.GET("/user/search", func(c *gin.Context) {
-		username := c.DefaultQuery("username", "小王子")
-		//username := c.Query("username")
-		address := c.Query("address")
-		//输出json结果给调用方
-		c.JSON(http.StatusOK, gin.H{
-			"message":  "ok",
-			"username": username,
-			"address":  address,
-		})
-	})
-	r.Run()
+    //Default返回一个默认的路由引擎
+    r := gin.Default()
+    r.GET("/user/search", func(c *gin.Context) {
+        username := c.DefaultQuery("username", "小王子")
+        //username := c.Query("username")
+        address := c.Query("address")
+        //输出json结果给调用方
+        c.JSON(http.StatusOK, gin.H{
+            "message":  "ok",
+            "username": username,
+            "address":  address,
+        })
+    })
+    r.Run()
 }
 ```
 
@@ -130,21 +126,21 @@ func main() {
 
 ```go
 func main() {
-	//Default返回一个默认的路由引擎
-	r := gin.Default()
-	r.POST("/user/search", func(c *gin.Context) {
-		// DefaultPostForm取不到值时会返回指定的默认值
-		//username := c.DefaultPostForm("username", "小王子")
-		username := c.PostForm("username")
-		address := c.PostForm("address")
-		//输出json结果给调用方
-		c.JSON(http.StatusOK, gin.H{
-			"message":  "ok",
-			"username": username,
-			"address":  address,
-		})
-	})
-	r.Run(":8080")
+    //Default返回一个默认的路由引擎
+    r := gin.Default()
+    r.POST("/user/search", func(c *gin.Context) {
+        // DefaultPostForm取不到值时会返回指定的默认值
+        //username := c.DefaultPostForm("username", "小王子")
+        username := c.PostForm("username")
+        address := c.PostForm("address")
+        //输出json结果给调用方
+        c.JSON(http.StatusOK, gin.H{
+            "message":  "ok",
+            "username": username,
+            "address":  address,
+        })
+    })
+    r.Run(":8080")
 }
 ```
 
@@ -154,14 +150,14 @@ func main() {
 
 ```go
 r.POST("/json", func(c *gin.Context) {
-	// 注意：下面为了举例子方便，暂时忽略了错误处理
-	b, _ := c.GetRawData()  // 从c.Request.Body读取请求数据
-	// 定义map或结构体
-	var m map[string]interface{}
-	// 反序列化
-	_ = json.Unmarshal(b, &m)
+    // 注意：下面为了举例子方便，暂时忽略了错误处理
+    b, _ := c.GetRawData()  // 从c.Request.Body读取请求数据
+    // 定义map或结构体
+    var m map[string]interface{}
+    // 反序列化
+    _ = json.Unmarshal(b, &m)
 
-	c.JSON(http.StatusOK, m)
+    c.JSON(http.StatusOK, m)
 })
 ```
 
@@ -171,20 +167,20 @@ r.POST("/json", func(c *gin.Context) {
 
 ```go
 func main() {
-	//Default返回一个默认的路由引擎
-	r := gin.Default()
-	r.GET("/user/search/:username/:address", func(c *gin.Context) {
-		username := c.Param("username")
-		address := c.Param("address")
-		//输出json结果给调用方
-		c.JSON(http.StatusOK, gin.H{
-			"message":  "ok",
-			"username": username,
-			"address":  address,
-		})
-	})
+    //Default返回一个默认的路由引擎
+    r := gin.Default()
+    r.GET("/user/search/:username/:address", func(c *gin.Context) {
+        username := c.Param("username")
+        address := c.Param("address")
+        //输出json结果给调用方
+        c.JSON(http.StatusOK, gin.H{
+            "message":  "ok",
+            "username": username,
+            "address":  address,
+        })
+    })
 
-	r.Run(":8080")
+    r.Run(":8080")
 }
 ```
 
@@ -200,33 +196,31 @@ func main() {
 ```go
 // Binding from JSON
 type Login struct {
-	User     string `form:"user" json:"user" binding:"required"`
-	Password string `form:"password" json:"password" binding:"required"`
+    User     string `form:"user" json:"user" binding:"required"`
+    Password string `form:"password" json:"password" binding:"required"`
 }
 
 func main() {
-	router := gin.Default()
+    router := gin.Default()
 
-	// 绑定JSON的示例 ({"user": "q1mi", "password": "123456"})
-	router.POST("/loginJSON", func(c *gin.Context) {
-		var login Login
+    // 绑定JSON的示例 ({"user": "q1mi", "password": "123456"})
+    router.POST("/loginJSON", func(c *gin.Context) {
+        var login Login
 
-		if err := c.ShouldBind(&login); err == nil {
-			fmt.Printf("login info:%#v\n", login)
-			c.JSON(http.StatusOK, gin.H{
-				"user":     login.User,
-				"password": login.Password,
-			})
-		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		}
-	})
-	// Listen and serve on 0.0.0.0:8080
-	router.Run(":8080")
+        if err := c.ShouldBind(&login); err == nil {
+            fmt.Printf("login info:%#v\n", login)
+            c.JSON(http.StatusOK, gin.H{
+                "user":     login.User,
+                "password": login.Password,
+            })
+        } else {
+            c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        }
+    })
+    // Listen and serve on 0.0.0.0:8080
+    router.Run(":8080")
 }
 ```
-
-
 
 ## 文件上传
 
@@ -241,29 +235,29 @@ func main() {
 
 ```go
 func main() {
-	router := gin.Default()
-	// 处理multipart forms提交文件时默认的内存限制是32 MiB
-	// 可以通过下面的方式修改
-	// router.MaxMultipartMemory = 8 << 20  // 8 MiB
-	router.POST("/upload", func(c *gin.Context) {
-		// 单个文件
-		file, err := c.FormFile("f1")
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": err.Error(),
-			})
-			return
-		}
+    router := gin.Default()
+    // 处理multipart forms提交文件时默认的内存限制是32 MiB
+    // 可以通过下面的方式修改
+    // router.MaxMultipartMemory = 8 << 20  // 8 MiB
+    router.POST("/upload", func(c *gin.Context) {
+        // 单个文件
+        file, err := c.FormFile("f1")
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "message": err.Error(),
+            })
+            return
+        }
 
-		log.Println(file.Filename)
-		dst := fmt.Sprintf("C:/tmp/%s", file.Filename)
-		// 上传文件到指定的目录
-		c.SaveUploadedFile(file, dst)
-		c.JSON(http.StatusOK, gin.H{
-			"message": fmt.Sprintf("'%s' uploaded!", file.Filename),
-		})
-	})
-	router.Run()
+        log.Println(file.Filename)
+        dst := fmt.Sprintf("C:/tmp/%s", file.Filename)
+        // 上传文件到指定的目录
+        c.SaveUploadedFile(file, dst)
+        c.JSON(http.StatusOK, gin.H{
+            "message": fmt.Sprintf("'%s' uploaded!", file.Filename),
+        })
+    })
+    router.Run()
 }
 ```
 
@@ -271,30 +265,28 @@ func main() {
 
 ```go
 func main() {
-	router := gin.Default()
-	// 处理multipart forms提交文件时默认的内存限制是32 MiB
-	// 可以通过下面的方式修改
-	// router.MaxMultipartMemory = 8 << 20  // 8 MiB
-	router.POST("/upload", func(c *gin.Context) {
-		// Multipart form
-		form, _ := c.MultipartForm()
-		files := form.File["file"]
+    router := gin.Default()
+    // 处理multipart forms提交文件时默认的内存限制是32 MiB
+    // 可以通过下面的方式修改
+    // router.MaxMultipartMemory = 8 << 20  // 8 MiB
+    router.POST("/upload", func(c *gin.Context) {
+        // Multipart form
+        form, _ := c.MultipartForm()
+        files := form.File["file"]
 
-		for index, file := range files {
-			log.Println(file.Filename)
-			dst := fmt.Sprintf("C:/tmp/%s_%d", file.Filename, index)
-			// 上传文件到指定的目录
-			c.SaveUploadedFile(file, dst)
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"message": fmt.Sprintf("%d files uploaded!", len(files)),
-		})
-	})
-	router.Run()
+        for index, file := range files {
+            log.Println(file.Filename)
+            dst := fmt.Sprintf("C:/tmp/%s_%d", file.Filename, index)
+            // 上传文件到指定的目录
+            c.SaveUploadedFile(file, dst)
+        }
+        c.JSON(http.StatusOK, gin.H{
+            "message": fmt.Sprintf("%d files uploaded!", len(files)),
+        })
+    })
+    router.Run()
 }
 ```
-
-
 
 ## 中间件
 
@@ -311,17 +303,17 @@ Gin中的中间件必须是一个`gin.HandlerFunc`类型。
 ```go
 // StatCost 是一个统计耗时请求耗时的中间件
 func StatCost() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		start := time.Now()
-		c.Set("name", "小王子") // 可以通过c.Set在请求上下文中设置值，后续的处理函数能够取到该值
-		// 调用该请求的剩余处理程序
-		c.Next()
-		// 不调用该请求的剩余处理程序
-		// c.Abort()
-		// 计算耗时
-		cost := time.Since(start)
-		log.Println(cost)
-	}
+    return func(c *gin.Context) {
+        start := time.Now()
+        c.Set("name", "小王子") // 可以通过c.Set在请求上下文中设置值，后续的处理函数能够取到该值
+        // 调用该请求的剩余处理程序
+        c.Next()
+        // 不调用该请求的剩余处理程序
+        // c.Abort()
+        // 计算耗时
+        cost := time.Since(start)
+        log.Println(cost)
+    }
 }
 ```
 
@@ -331,25 +323,25 @@ func StatCost() gin.HandlerFunc {
 
 ```go
 type bodyLogWriter struct {
-	gin.ResponseWriter               // 嵌入gin框架ResponseWriter
-	body               *bytes.Buffer // 我们记录用的response
+    gin.ResponseWriter               // 嵌入gin框架ResponseWriter
+    body               *bytes.Buffer // 我们记录用的response
 }
 
 // Write 写入响应体数据
 func (w bodyLogWriter) Write(b []byte) (int, error) {
-	w.body.Write(b)                  // 我们记录一份
-	return w.ResponseWriter.Write(b) // 真正写入响应
+    w.body.Write(b)                  // 我们记录一份
+    return w.ResponseWriter.Write(b) // 真正写入响应
 }
 
 // ginBodyLogMiddleware 一个记录返回给客户端响应体的中间件
 // https://stackoverflow.com/questions/38501325/how-to-log-response-body-in-gin
 func ginBodyLogMiddleware(c *gin.Context) {
-	blw := &bodyLogWriter{body: bytes.NewBuffer([]byte{}), ResponseWriter: c.Writer}
-	c.Writer = blw // 使用我们自定义的类型替换默认的
+    blw := &bodyLogWriter{body: bytes.NewBuffer([]byte{}), ResponseWriter: c.Writer}
+    c.Writer = blw // 使用我们自定义的类型替换默认的
 
-	c.Next() // 执行业务逻辑
+    c.Next() // 执行业务逻辑
 
-	fmt.Println("Response body: " + blw.body.String()) // 事后按需记录返回的响应
+    fmt.Println("Response body: " + blw.body.String()) // 事后按需记录返回的响应
 }
 ```
 
@@ -415,19 +407,19 @@ func main() {
 
 ```go
 func main() {
-	// 新建一个没有任何默认中间件的路由
-	r := gin.New()
-	// 注册一个全局中间件
-	r.Use(StatCost())
-	
-	r.GET("/test", func(c *gin.Context) {
-		name := c.MustGet("name").(string) // 从上下文取值
-		log.Println(name)
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Hello world!",
-		})
-	})
-	r.Run()
+    // 新建一个没有任何默认中间件的路由
+    r := gin.New()
+    // 注册一个全局中间件
+    r.Use(StatCost())
+
+    r.GET("/test", func(c *gin.Context) {
+        name := c.MustGet("name").(string) // 从上下文取值
+        log.Println(name)
+        c.JSON(http.StatusOK, gin.H{
+            "message": "Hello world!",
+        })
+    })
+    r.Run()
 }
 ```
 
@@ -435,13 +427,13 @@ func main() {
 
 ```go
 // 给/test2路由单独注册中间件（可注册多个）
-	r.GET("/test2", StatCost(), func(c *gin.Context) {
-		name := c.MustGet("name").(string) // 从上下文取值
-		log.Println(name)
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Hello world!",
-		})
-	})
+    r.GET("/test2", StatCost(), func(c *gin.Context) {
+        name := c.MustGet("name").(string) // 从上下文取值
+        log.Println(name)
+        c.JSON(http.StatusOK, gin.H{
+            "message": "Hello world!",
+        })
+    })
 ```
 
 #### 为路由组注册中间件
@@ -484,96 +476,90 @@ shopGroup.Use(StatCost())
 
 当在中间件或`handler`中启动新的`goroutine`时，**不能使用**原始的上下文（c *gin.Context），必须使用其只读副本（`c.Copy()`）。
 
-
-
 ## 运行多个服务
 
 ```go
 package main
 
 import (
-	"log"
-	"net/http"
-	"time"
+    "log"
+    "net/http"
+    "time"
 
-	"github.com/gin-gonic/gin"
-	"golang.org/x/sync/errgroup"
+    "github.com/gin-gonic/gin"
+    "golang.org/x/sync/errgroup"
 )
 
 var (
-	g errgroup.Group
+    g errgroup.Group
 )
 
 func router01() http.Handler {
-	e := gin.New()
-	e.Use(gin.Recovery())
-	e.GET("/", func(c *gin.Context) {
-		c.JSON(
-			http.StatusOK,
-			gin.H{
-				"code":  http.StatusOK,
-				"error": "Welcome server 01",
-			},
-		)
-	})
+    e := gin.New()
+    e.Use(gin.Recovery())
+    e.GET("/", func(c *gin.Context) {
+        c.JSON(
+            http.StatusOK,
+            gin.H{
+                "code":  http.StatusOK,
+                "error": "Welcome server 01",
+            },
+        )
+    })
 
-	return e
+    return e
 }
 
 func router02() http.Handler {
-	e := gin.New()
-	e.Use(gin.Recovery())
-	e.GET("/", func(c *gin.Context) {
-		c.JSON(
-			http.StatusOK,
-			gin.H{
-				"code":  http.StatusOK,
-				"error": "Welcome server 02",
-			},
-		)
-	})
+    e := gin.New()
+    e.Use(gin.Recovery())
+    e.GET("/", func(c *gin.Context) {
+        c.JSON(
+            http.StatusOK,
+            gin.H{
+                "code":  http.StatusOK,
+                "error": "Welcome server 02",
+            },
+        )
+    })
 
-	return e
+    return e
 }
 
 func main() {
-	server01 := &http.Server{
-		Addr:         ":8080",
-		Handler:      router01(),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}
+    server01 := &http.Server{
+        Addr:         ":8080",
+        Handler:      router01(),
+        ReadTimeout:  5 * time.Second,
+        WriteTimeout: 10 * time.Second,
+    }
 
-	server02 := &http.Server{
-		Addr:         ":8081",
-		Handler:      router02(),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}
+    server02 := &http.Server{
+        Addr:         ":8081",
+        Handler:      router02(),
+        ReadTimeout:  5 * time.Second,
+        WriteTimeout: 10 * time.Second,
+    }
    // 借助errgroup.Group或者自行开启两个goroutine分别启动两个服务
-	g.Go(func() error {
-		return server01.ListenAndServe()
-	})
+    g.Go(func() error {
+        return server01.ListenAndServe()
+    })
 
-	g.Go(func() error {
-		return server02.ListenAndServe()
-	})
+    g.Go(func() error {
+        return server02.ListenAndServe()
+    })
 
-	if err := g.Wait(); err != nil {
-		log.Fatal(err)
-	}
+    if err := g.Wait(); err != nil {
+        log.Fatal(err)
+    }
 }
 ```
-
-
 
 ## Reference Links
 
 > - https://www.liwenzhou.com/posts/Go/gin/
 
-
-
-#  Gorm基础使用
+# Gorm基础使用
 
 ## 模型定义
 
@@ -581,37 +567,37 @@ func main() {
 
 ### 字段标签
 
-| 标签名                 | 说明                                                         |
-| :--------------------- | :----------------------------------------------------------- |
-| column                 | 指定 db 列名                                                 |
+| 标签名                    | 说明                                                                                                                                                                                                                                       |
+|:---------------------- |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| column                 | 指定 db 列名                                                                                                                                                                                                                                 |
 | type                   | 列数据类型，推荐使用兼容性好的通用类型，例如：所有数据库都支持 bool、int、uint、float、string、time、bytes 并且可以和其他标签一起使用，例如：`not null`、`size`, `autoIncrement`… 像 `varbinary(8)` 这样指定数据库数据类型也是支持的。在使用指定数据库数据类型时，它需要是完整的数据库数据类型，如：`MEDIUMINT UNSIGNED not NULL AUTO_INCREMENT` |
-| serializer             | 指定将数据序列化或反序列化到数据库中的序列化器, 例如: `serializer:json/gob/unixtime` |
-| size                   | 定义列数据类型的大小或长度，例如 `size: 256`                 |
-| primaryKey             | 将列定义为主键                                               |
-| unique                 | 将列定义为唯一键                                             |
-| default                | 定义列的默认值                                               |
-| precision              | 指定列的精度                                                 |
-| scale                  | 指定列大小                                                   |
-| not null               | 指定列为 NOT NULL                                            |
-| autoIncrement          | 指定列为自动增长                                             |
-| autoIncrementIncrement | 自动步长，控制连续记录之间的间隔                             |
-| embedded               | 嵌套字段                                                     |
-| embeddedPrefix         | 嵌入字段的列名前缀                                           |
-| autoCreateTime         | 创建时追踪当前时间，对于 `int` 字段，它会追踪时间戳秒数，您可以使用 `nano`/`milli` 来追踪纳秒、毫秒时间戳，例如：`autoCreateTime:nano` |
-| autoUpdateTime         | 创建/更新时追踪当前时间，对于 `int` 字段，它会追踪时间戳秒数，您可以使用 `nano`/`milli` 来追踪纳秒、毫秒时间戳，例如：`autoUpdateTime:milli` |
-| index                  | 根据参数创建索引，多个字段使用相同的名称则创建复合索引，查看 [索引](https://gorm.io/zh_CN/docs/indexes.html) 获取详情 |
-| uniqueIndex            | 与 `index` 相同，但创建的是唯一索引                          |
-| check                  | 创建检查约束，例如 `check:age > 13`，查看 [约束](https://gorm.io/zh_CN/docs/constraints.html) 获取详情 |
-| <-                     | 设置字段写入的权限， `<-:create` 只创建、`<-:update` 只更新、`<-:false` 无写入权限、`<-` 创建和更新权限 |
-| ->                     | 设置字段读的权限，`->:false` 无读权限                        |
-| -                      | 忽略该字段，`-` 表示无读写，`-:migration` 表示无迁移权限，`-:all` 表示无读写迁移权限 |
-| comment                | 迁移时为字段添加注释                                         |
+| serializer             | 指定将数据序列化或反序列化到数据库中的序列化器, 例如: `serializer:json/gob/unixtime`                                                                                                                                                                              |
+| size                   | 定义列数据类型的大小或长度，例如 `size: 256`                                                                                                                                                                                                             |
+| primaryKey             | 将列定义为主键                                                                                                                                                                                                                                  |
+| unique                 | 将列定义为唯一键                                                                                                                                                                                                                                 |
+| default                | 定义列的默认值                                                                                                                                                                                                                                  |
+| precision              | 指定列的精度                                                                                                                                                                                                                                   |
+| scale                  | 指定列大小                                                                                                                                                                                                                                    |
+| not null               | 指定列为 NOT NULL                                                                                                                                                                                                                            |
+| autoIncrement          | 指定列为自动增长                                                                                                                                                                                                                                 |
+| autoIncrementIncrement | 自动步长，控制连续记录之间的间隔                                                                                                                                                                                                                         |
+| embedded               | 嵌套字段                                                                                                                                                                                                                                     |
+| embeddedPrefix         | 嵌入字段的列名前缀                                                                                                                                                                                                                                |
+| autoCreateTime         | 创建时追踪当前时间，对于 `int` 字段，它会追踪时间戳秒数，您可以使用 `nano`/`milli` 来追踪纳秒、毫秒时间戳，例如：`autoCreateTime:nano`                                                                                                                                                |
+| autoUpdateTime         | 创建/更新时追踪当前时间，对于 `int` 字段，它会追踪时间戳秒数，您可以使用 `nano`/`milli` 来追踪纳秒、毫秒时间戳，例如：`autoUpdateTime:milli`                                                                                                                                            |
+| index                  | 根据参数创建索引，多个字段使用相同的名称则创建复合索引，查看 [索引](https://gorm.io/zh_CN/docs/indexes.html) 获取详情                                                                                                                                                        |
+| uniqueIndex            | 与 `index` 相同，但创建的是唯一索引                                                                                                                                                                                                                   |
+| check                  | 创建检查约束，例如 `check:age > 13`，查看 [约束](https://gorm.io/zh_CN/docs/constraints.html) 获取详情                                                                                                                                                     |
+| <-                     | 设置字段写入的权限， `<-:create` 只创建、`<-:update` 只更新、`<-:false` 无写入权限、`<-` 创建和更新权限                                                                                                                                                                 |
+| ->                     | 设置字段读的权限，`->:false` 无读权限                                                                                                                                                                                                                 |
+| -                      | 忽略该字段，`-` 表示无读写，`-:migration` 表示无迁移权限，`-:all` 表示无读写迁移权限                                                                                                                                                                                  |
+| comment                | 迁移时为字段添加注释                                                                                                                                                                                                                               |
 
 ### gorm.Model
 
 GORM提供了一个预定义的结构体，名为`gorm.Model`，其中包含常用字段：
 
-``` go
+```go
 // gorm.Model 定义
 type Model struct {
     ID        uint `gorm:"primary_key"`
@@ -628,8 +614,6 @@ type Model struct {
 - `UpdatedAt`：每当记录更新时，自动更新为当前时间。
 - `DeletedAt`：用于软删除（将记录标记为已删除，而实际上并未从数据库中删除）。
 
-
-
 ### 约定和字段权限控制
 
 约定：
@@ -638,8 +622,6 @@ type Model struct {
 2. **表名**：默认情况下，GORM 将结构体名称转换为 `snake_case` 并为表名加上复数形式。 例如，一个 `User` 结构体在数据库中的表名变为 `users` 。
 3. **列名**：GORM 自动将结构体字段名称转换为 `snake_case` 作为数据库中的列名。
 4. **时间戳字段**：GORM使用字段 `CreatedAt` 和 `UpdatedAt` 来自动跟踪记录的创建和更新时间。
-
-
 
 字段权限控制：
 
@@ -661,8 +643,6 @@ type User struct {
     Name string `gorm:"-:migration"`  // 通过 struct 迁移会忽略该字段
 }
 ```
-
-
 
 ### 结构体嵌入
 
@@ -707,14 +687,10 @@ type Blog struct {
 }
 ```
 
-
-
 ## Reference Links
 
 > - https://gorm.io/zh_CN/docs/
 > - https://www.liwenzhou.com/posts/Go/gorm/
-
-
 
 # go-zero基础使用
 
@@ -731,8 +707,6 @@ type Blog struct {
 7. 添加自己的逻辑
 
 ![img](./images/Go-Framworks.assets/20231026152242.png)
-
-
 
 ### user rpc
 
@@ -775,13 +749,11 @@ goctl rpc protoc ./user.proto --go_out=./types --go-grpc_out=./types --zrpc_out=
 
 ```go
 func (l *GetUserLogic) GetUser(in *user.IdRequest) (*user.UserResponse, error) {
-	// todo: add your logic here and delete this line
+    // todo: add your logic here and delete this line
 
-	return &user.UserResponse{Id: in.Id, Name: "zero", Gender: true}, nil
+    return &user.UserResponse{Id: in.Id, Name: "zero", Gender: true}, nil
 }
 ```
-
-
 
 ### video api
 
@@ -789,18 +761,18 @@ Project/video/api/video.api
 
 ```go
 type (
-	VideoReq {
-		Id string `path:"id"`
-	}
-	VideoRes {
-		Id   string `json:"id"`
-		Name string `json:"name"`
-	}
+    VideoReq {
+        Id string `path:"id"`
+    }
+    VideoRes {
+        Id   string `json:"id"`
+        Name string `json:"name"`
+    }
 )
 
 service video {
-	@handler getVideo
-	get /api/videos/:id (VideoReq) returns (VideoRes)
+    @handler getVideo
+    get /api/videos/:id (VideoReq) returns (VideoRes)
 }
 ```
 
@@ -809,8 +781,6 @@ service video {
 ```sh
 goctl api go -api ./video.api -dir ./
 ```
-
-
 
 ### api 调用 user rpc
 
@@ -822,8 +792,8 @@ Project/video/api/internal/config/config.go：
 
 ```go
 type Config struct {
-	rest.RestConf
-	UserRpc zrpc.RpcClientConf
+    rest.RestConf
+    UserRpc zrpc.RpcClientConf
 }
 ```
 
@@ -870,19 +840,17 @@ Project/video/api/internal/logic/getvideologic.go：
 
 ```go
 func (l *GetVideoLogic) GetVideo(req *types.VideoReq) (resp *types.VideoRes, err error) {
-	// todo: add your logic here and delete this line
-	user1, err := l.svcCtx.UserRpc.GetUser(l.ctx, &user.IdRequest{Id: "1"})
-	if err != nil {
-		return nil, err
-	}
-	return &types.VideoRes{
-		Id:   req.Id,
-		Name: user1.Name,
-	}, nil
+    // todo: add your logic here and delete this line
+    user1, err := l.svcCtx.UserRpc.GetUser(l.ctx, &user.IdRequest{Id: "1"})
+    if err != nil {
+        return nil, err
+    }
+    return &types.VideoRes{
+        Id:   req.Id,
+        Name: user1.Name,
+    }, nil
 }
 ```
-
-
 
 启动项目：先启动 user rpc，再启动 video api
 
@@ -895,8 +863,6 @@ go run video/api/video.go -f video/api/etc/video.yaml
 curl 127.0.0.1:8888/api/videos/1
 ```
 
-
-
 ## API 定义
 
 API 语法规范：https://go-zero.dev/docs/tutorials
@@ -908,8 +874,6 @@ API 语法规范：https://go-zero.dev/docs/tutorials
 3. 不支持嵌套结构体声明（不能在一个结构体中声明另一个字结构体，可以提前声明一个结构体后嵌套调用）
 4. 不支持别名
 5. 暂时不支持泛型、弱类型，如 `any` 类型
-
-
 
 ### 路由前缀
 
@@ -932,8 +896,6 @@ service user-api {
     get /users returns ([]UserV2)
 }
 ```
-
-
 
 ### 服务分组
 
@@ -968,8 +930,6 @@ service user-api {
 }
 ```
 
-
-
 ### 签名开关
 
 通过 @server 语法块的`signature` 关键字
@@ -983,8 +943,6 @@ service sign-api {
     post /sign/demo (SignDemoReq) returns (SignDemoResp)
 }
 ```
-
-
 
 ### 开启JWT认证
 
@@ -1002,8 +960,6 @@ service user-api {
 
 该 jwt 认证仅对其对应的路由有用
 
-
-
 修改配置文件：
 
 ```yaml
@@ -1014,8 +970,6 @@ Auth:
   AccessSecret: cwaiugebvaihdfw
   AccessExpire: 3600 # 秒
 ```
-
-
 
 ### 路由规则
 
@@ -1079,35 +1033,29 @@ service Demo {
 }
 ```
 
-
-
 ### 参数规则
 
 参数接收规则：
 
-| 接收规则 | 说明                                                         | 生效范围      | 接收tag示例             | 请求示例                                            |
-| -------- | ------------------------------------------------------------ | ------------- | ----------------------- | --------------------------------------------------- |
-| json     | json 序列化                                                  | 请求体&响应体 | json:"foo"              | {"key":"vulue"}                                     |
-| path     | 路由参数                                                     | 请求体        | path:"id"               | /foo/:id                                            |
-| form     | post 请求的表单(支持 content-type 为 `form-data` 和 `x-www-form-urlencoded`) 参数请求接收标识，get 请求的 query 参数接收标识 | 请求体        | form:"name"             | GET /search?key=vulue                               |
-| header   | http 请求体接收标识                                          | 请求体        | header:"Content-Length" | origin: [https://go-zero.dev](https://go-zero.dev/) |
-
-
+| 接收规则   | 说明                                                                                                | 生效范围    | 接收tag示例                 | 请求示例                                                |
+| ------ | ------------------------------------------------------------------------------------------------- | ------- | ----------------------- | --------------------------------------------------- |
+| json   | json 序列化                                                                                          | 请求体&响应体 | json:"foo"              | {"key":"vulue"}                                     |
+| path   | 路由参数                                                                                              | 请求体     | path:"id"               | /foo/:id                                            |
+| form   | post 请求的表单(支持 content-type 为 `form-data` 和 `x-www-form-urlencoded`) 参数请求接收标识，get 请求的 query 参数接收标识 | 请求体     | form:"name"             | GET /search?key=vulue                               |
+| header | http 请求体接收标识                                                                                      | 请求体     | header:"Content-Length" | origin: [https://go-zero.dev](https://go-zero.dev/) |
 
 参数校验规则：
 
 参数校验的规则仅对 **请求体** 有效，参数校验的规则写在 tag value中，目前 go-zero 支持的参数校验规则如下：
 
-| 校验规则 | 说明                                                         | 示例                            |
-| -------- | ------------------------------------------------------------ | ------------------------------- |
-| optional | 当前字段是可选参数，允许为零值(zero value)                   | `json:"foo,optional"`           |
-| options  | 当前参数仅可接收的枚举值                                     | `json:"gender,options=foo|bar"` |
-| default  | 当前参数默认值                                               | `json:"gender,default=male"`    |
-| range    | 当前参数数值有效范围，仅对数值有效，写法规则详情见下文温馨提示 | `json:"age,range=[0:120]"`      |
+| 校验规则     | 说明                              | 示例                           |
+| -------- | ------------------------------- | ---------------------------- |
+| optional | 当前字段是可选参数，允许为零值(zero value)     | `json:"foo,optional"`        |
+| options  | 当前参数仅可接收的枚举值                    | `json:"gender,options=foo    |
+| default  | 当前参数默认值                         | `json:"gender,default=male"` |
+| range    | 当前参数数值有效范围，仅对数值有效，写法规则详情见下文温馨提示 | `json:"age,range=[0:120]"`   |
 
 range 的括号可开可闭
-
-
 
 ### 中间件声明
 
@@ -1139,8 +1087,6 @@ func (m *UserAgentMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 }
 ```
 
-
-
 ### API Import
 
 Base.api:
@@ -1169,17 +1115,11 @@ import "base.api"
 - 支持绝对路径和相对路径
 - 只有 main api 可以出现 service 语法块，被引入的 api 文件中不行
 
-
-
 ### 格式化
 
 ```sh
 goctl api format -dir <api.api>
 ```
-
-
-
-
 
 ### 根据 API 文件生成代码
 
@@ -1188,9 +1128,7 @@ goctl api format -dir <api.api>
 goctl api go -api ./video.api -dir ./
 ```
 
-
-
-## Proto 定义
+## Proto 定义（RPC）
 
 Proto 语法规范：https://developers.google.com/protocol-buffers/docs/gotutorial
 
@@ -1199,8 +1137,6 @@ Proto 语法规范：https://developers.google.com/protocol-buffers/docs/gotutor
 1. 允许嵌套声明
 2. 编写的所有 rpc 方法的请求体和响应体必须在主 proto 中声明 message，即不支持从外包外 message
 3. 不支持使用包外 proto 和 service
-
-
 
 ### 服务分组
 
@@ -1247,7 +1183,64 @@ service UserClassService{
 goctl rpc protoc user.proto --go_out=. --go-grpc_out=. --zrpc_out=. -m
 ```
 
+### Rpc开启Auth验证
 
+客户端访问 `rpc` 服务需要携带 `App` 标识以及 `Token` 值，`rpc` 服务会从指定的 `Redis` 服务中验证 `App` 标识和 `Token` 值是否正确。所以客户端的 `App` 标识，`Token` 值，是需要提前打入 `Redis` 服务中。
+
+.../rpc/etc/user.yaml: 
+
+```yaml
+Name: user.rpc
+ListenOn: 0.0.0.0:9000
+
+......
+
+Auth: true               # 是否开启 Auth 验证
+StrictControl: true      # 是否开启严格模式
+Redis:                   # 指定 Redis 服务
+  Key: rpc:auth:user     # 指定 Key 应为 hash 类型
+  Host: localhost:6379
+  Type: node
+  Pass: "123456"
+```
+
+.../api/etc/user.yaml: 
+
+```yaml
+Name: User
+Host: 0.0.0.0
+Port: 8000
+
+......
+
+UserRpc:
+  App: userapi                          # App 标识
+  Token: 6jKNZbEpYGeUMAifz10gOnmoty3TV  # Token 值
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: user.rpc
+```
+
+手动在Redis中添加一个类型为hash的键值对：
+
+- key为 `.../rpc/etc/user.yaml`中指定的key：rpc:auth:user
+- field为`.../api/etc/user.yaml`中指定的App：userapi
+- value为`.../api/etc/user.yaml`中指定的Token：6jKNZbEpYGeUMAifz10gOnmoty3TV
+
+> StrictControl 严格模式相比非严格模式：
+> 
+> - 非严格模式系统只检查 JWT 是否有效（签名正确）。
+> 
+> - 可能多进行以下验证：
+>   
+>   - 验证 JWT 是否过期。
+>   
+>   - 检查请求的 userId 是否与 JWT 中的用户 ID 匹配。
+>   
+>   - 验证用户角色，例如只有管理员可以查看其他用户的信息。
+>   
+>   - ...
 
 ### 根据 proto 文件生成代码
 
@@ -1263,19 +1256,17 @@ goctl rpc protoc user.proto --go_out=. --go-grpc_out=. --zrpc_out=.
 goctl rpc protoc user.proto --go_out=. --go-grpc_out=. --zrpc_out=. -m
 ```
 
-
-
 ## Model 生成和使用
 
 > goctl model 详细参数解析：https://go-zero.dev/docs/tutorials/cli/model
 
 ### 生成的结构体之间的区别
 
-api 生成的结构体相当于 VO：Value Object
+api 生成的结构体（包名：types）相当于 VO：Value Object
 
-rpc 生成的结构体相当于 DTO：Data Transfer Object
+rpc 生成的结构体（包名：结构体名）相当于 DTO：Data Transfer Object
 
-model 生成的结构体相当于 PO：Persistent Object
+model 生成的结构体（包名：model）相当于 PO：Persistent Object
 
 ### MySQL 配合 Redis
 
@@ -1297,13 +1288,13 @@ user/rpc/internal/config/config.go:
 
 ```go
 type Config struct {
-	zrpc.RpcServerConf
+    zrpc.RpcServerConf
 
-	Mysql struct {
-		DataSource string
-	}
+    Mysql struct {
+        DataSource string
+    }
 
-	CacheRedis cache.CacheConf	// 如果带缓存
+    CacheRedis cache.CacheConf    // 如果带缓存
 }
 ```
 
@@ -1330,21 +1321,114 @@ user/rpc/internal/svc/servicecontext.go:
 
 ```go
 type ServiceContext struct {
-	Config config.Config
+    Config config.Config
 
-	UserModel model.UserModel
+    UserModel model.UserModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
-	conn := sqlx.NewMysql(c.Mysql.DataSource)
-	return &ServiceContext{
-		Config:    c,
-		UserModel: model.NewUserModel(conn, c.CacheRedis),
-	}
+    conn := sqlx.NewMysql(c.Mysql.DataSource)
+    return &ServiceContext{
+        Config:    c,
+        UserModel: model.NewUserModel(conn, c.CacheRedis),
+    }
 }
 ```
 
+#### 自定义model方法
 
+##### 直接查询数据库
+
+- eg：根据uid查询该用户的所有订单：
+
+.../model/ordermodel.go: 
+
+```go
+package model
+
+......
+
+type (
+    // OrderModel is an interface to be customized, add more methods here,
+    // and implement the added methods in customOrderModel.
+    OrderModel interface {
+        orderModel
+
+        FindAllByUid(ctx context.Context, uid int64) ([]*Order, error)
+    }
+
+    customOrderModel struct {
+        *defaultOrderModel
+    }
+)
+
+......
+
+func (m *customOrderModel) FindAllByUid(ctx context.Context, uid int64) ([]*Order, error) {
+    var resp []*Order
+
+    query := fmt.Sprintf("select %s from %s where `uid` = ?", orderRows, m.table)
+    err := m.QueryRowsNoCacheCtx(ctx, &resp, query, uid)
+
+    switch err {
+    case nil:
+        return resp, nil
+    case sqlc.ErrNotFound:
+        return nil, ErrNotFound
+    default:
+        return nil, err
+    }
+}
+
+......
+```
+
+##### 先查询缓存再查询数据库
+
+```go
+package model
+
+......
+
+var (
+    cachePayOidPrefix = "cache:pay:oid:"
+)
+
+type (
+    // PayModel is an interface to be customized, add more methods here,
+    // and implement the added methods in customPayModel.
+    PayModel interface {
+        payModel
+
+        FindOneByOid(ctx context.Context, oid int64) (*Pay, error)
+    }
+
+    customPayModel struct {
+        *defaultPayModel
+    }
+)
+
+......
+
+func (m *defaultPayModel) FindOneByOid(ctx context.Context, oid int64) (*Pay, error) {
+    payOidKey := fmt.Sprintf("%s%v", cachePayOidPrefix, oid)
+    var resp Pay
+    err := m.QueryRowCtx(ctx, &resp, payOidKey, func(ctx context.Context, conn sqlx.SqlConn, v interface{}) error {
+        query := fmt.Sprintf("select %s from %s where `oid` = ? limit 1", payRows, m.table)
+        return conn.QueryRowCtx(ctx, v, query, oid)
+    })
+    switch err {
+    case nil:
+        return &resp, nil
+    case sqlc.ErrNotFound:
+        return nil, ErrNotFound
+    default:
+        return nil, err
+    }
+}
+
+......
+```
 
 ### MongoDB
 
@@ -1365,8 +1449,6 @@ type User struct {
 }
 ```
 
-
-
 ## common service
 
 ### 密码加密存储
@@ -1377,15 +1459,15 @@ common/cryptx/crypt.go:
 package cryptx
 
 import (
-	"fmt"
+    "fmt"
 
-	"golang.org/x/crypto/scrypt"
+    "golang.org/x/crypto/scrypt"
 )
 
 // PasswordEncrypt 密码加密：给需要存储的密码加盐，转换为不可逆的散列值
 func PasswordEncrypt(salt, password string) string {
-	dk, _ := scrypt.Key([]byte(password), []byte(salt), 32768, 8, 1, 32)
-	return fmt.Sprintf("%x", dk)
+    dk, _ := scrypt.Key([]byte(password), []byte(salt), 32768, 8, 1, 32)
+    return fmt.Sprintf("%x", dk)
 }
 ```
 
@@ -1400,10 +1482,10 @@ service/user/rpc/internal/config/config.go:
 
 ```go
 type Config struct {
-	zrpc.RpcServerConf
-	...
-	
-	Salt       string
+    zrpc.RpcServerConf
+    ...
+
+    Salt       string
 }
 ```
 
@@ -1412,8 +1494,6 @@ type Config struct {
 ```go
 cryptx.PasswordEncrypt(l.svcCtx.Config.Salt, in.Password)
 ```
-
-
 
 ### jwt
 
@@ -1461,12 +1541,12 @@ service/user/api/internal/config/config.go:
 
 ```go
 type Config struct {
-	rest.RestConf
-	Auth struct {
-		AccessSecret string
-		AccessExpire int64
-	}
-	...
+    rest.RestConf
+    Auth struct {
+        AccessSecret string
+        AccessExpire int64
+    }
+    ...
 }
 ```
 
@@ -1476,23 +1556,21 @@ internal/logic/loginlogic.go:
 
 ```go
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
-	// ... 登陆验证逻辑完成后
-	now := time.Now().Unix()
-	accessExpire := l.svcCtx.Config.Auth.AccessExpire
+    // ... 登陆验证逻辑完成后
+    now := time.Now().Unix()
+    accessExpire := l.svcCtx.Config.Auth.AccessExpire
 
-	accessToken, err := jwtx.GetToken(l.svcCtx.Config.Auth.AccessSecret, now, accessExpire, res.Id)
-	if err != nil {
-		return nil, err
-	}
+    accessToken, err := jwtx.GetToken(l.svcCtx.Config.Auth.AccessSecret, now, accessExpire, res.Id)
+    if err != nil {
+        return nil, err
+    }
 
-	return &types.LoginResponse{
-		AccessToken:  accessToken,
-		AccessExpire: now + accessExpire,
-	}, nil
+    return &types.LoginResponse{
+        AccessToken:  accessToken,
+        AccessExpire: now + accessExpire,
+    }, nil
 }
 ```
-
-
 
 载体信息获取方式（如 uid）：
 jwt 通常可以携带一些自定义信息，比如 server 端生成 jwt key 时添加了 `custom-key` 值，go-zero 在解析后会将所有载体放到 context 中，开发者可以 通过如下示例获取载体信息。
@@ -1504,8 +1582,6 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoReq) (resp *types.UserInfoRe
     return
 }
 ```
-
-
 
 JWT 认证失败自定义处理返回：
 
@@ -1523,24 +1599,25 @@ func main() {
 }
 ```
 
+### Rpc Auth验证
 
+参考：` ##Proto定义（RPC）目录下的###Rpc开启Auth验证`
 
+### DTM分布式事务
 
+参考：https://juejin.cn/post/7051205679217901599
 
 ## Reference Links
 
 > - https://go-zero.dev/
 > - https://www.fengfengzhidao.com/article/PNndcYsBEG4v2tWkOG3k
-
-
+> - https://juejin.cn/post/7036011047391592485
 
 # gRPC基础使用
 
 ## Protobuf语法
 
 // TBD
-
-
 
 ## gRPC Hello World
 
@@ -1576,11 +1653,10 @@ service Greeter {
 ```
 
 生成代码：会自动生成 [helloworld.pb.go](https://github.com/grpc/grpc-go/blob/v1.67.0/examples/helloworld/helloworld/helloworld.pb.go) 和 [helloworld_grpc.pb.go](https://github.com/grpc/grpc-go/blob/v1.67.0/examples/helloworld/helloworld/helloworld_grpc.pb.go)
+
 ```sh
 protoc --go_out=. --go-grpc_out=. <path/to/your/proto/file.proto>
 ```
-
-
 
 rpc_server:
 
@@ -1589,47 +1665,45 @@ rpc_server:
 package main
 
 import (
-	"context"
-	"flag"
-	"fmt"
-	"log"
-	"net"
+    "context"
+    "flag"
+    "fmt"
+    "log"
+    "net"
 
-	"google.golang.org/grpc"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+    "google.golang.org/grpc"
+    pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 var (
-	port = flag.Int("port", 50051, "The server port")
+    port = flag.Int("port", 50051, "The server port")
 )
 
 // server is used to implement helloworld.GreeterServer.
 type server struct {
-	pb.UnimplementedGreeterServer
+    pb.UnimplementedGreeterServer
 }
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) SayHello(_ context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	log.Printf("Received: %v", in.GetName())
-	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
+    log.Printf("Received: %v", in.GetName())
+    return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
 }
 
 func main() {
-	flag.Parse()
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-	s := grpc.NewServer()
-	pb.RegisterGreeterServer(s, &server{})
-	log.Printf("server listening at %v", lis.Addr())
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+    flag.Parse()
+    lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+    if err != nil {
+        log.Fatalf("failed to listen: %v", err)
+    }
+    s := grpc.NewServer()
+    pb.RegisterGreeterServer(s, &server{})
+    log.Printf("server listening at %v", lis.Addr())
+    if err := s.Serve(lis); err != nil {
+        log.Fatalf("failed to serve: %v", err)
+    }
 }
 ```
-
-
 
 rpc_client: 
 
@@ -1638,113 +1712,84 @@ rpc_client:
 package main
 
 import (
-	"context"
-	"flag"
-	"log"
-	"time"
+    "context"
+    "flag"
+    "log"
+    "time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+    "google.golang.org/grpc"
+    "google.golang.org/grpc/credentials/insecure"
+    pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 const (
-	defaultName = "world"
+    defaultName = "world"
 )
 
 var (
-	addr = flag.String("addr", "localhost:50051", "the address to connect to")
-	name = flag.String("name", defaultName, "Name to greet")
+    addr = flag.String("addr", "localhost:50051", "the address to connect to")
+    name = flag.String("name", defaultName, "Name to greet")
 )
 
 func main() {
-	flag.Parse()
-	// Set up a connection to the server.
-	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
+    flag.Parse()
+    // Set up a connection to the server.
+    conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+    if err != nil {
+        log.Fatalf("did not connect: %v", err)
+    }
+    defer conn.Close()
+    c := pb.NewGreeterClient(conn)
 
-	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: *name})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
-	}
-	log.Printf("Greeting: %s", r.GetMessage())
+    // Contact the server and print out its response.
+    ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+    defer cancel()
+    r, err := c.SayHello(ctx, &pb.HelloRequest{Name: *name})
+    if err != nil {
+        log.Fatalf("could not greet: %v", err)
+    }
+    log.Printf("Greeting: %s", r.GetMessage())
 }
 ```
-
-
 
 ## 简单RPC与流式RPC
 
 使用示例：https://github.com/grpc/grpc-go/tree/v1.67.0/examples/route_guide
 
 1. 简单RPC
-
+   
    客户端使用存根发送请求到服务器并等待响应返回，就像平常的函数调用一样。
-
+   
    ```protobuf
    rpc GetFeature(Point) returns (Feature) {}
    ```
 
 2. 客户端流式RPC
-
+   
    客户端写入一个消息序列并将其发送到服务器，同样也是使用流。一旦客户端完成写入消息，它等待服务器完成读取返回它的响应。通过在 *请求* 类型前指定 `stream` 关键字来指定一个客户端的流方法。
-
+   
    ```protobuf
     rpc RecordRoute(stream Point) returns (RouteSummary) {}
    ```
 
 3. 服务器流式RPC
-
+   
    客户端发送请求到服务器，拿到一个流去读取返回的消息序列。 客户端读取返回的流，直到里面没有任何消息。从例子中可以看出，通过在 *响应* 类型前插入 `stream` 关键字，可以指定一个服务器端的流方法。
-
+   
    ```protobuf
    rpc ListFeatures(Rectangle) returns (stream Feature) {}
    ```
 
 4. 双向流式RPC（全双工RPC）
-
+   
    双方使用读写流去发送一个消息序列。两个流独立操作，因此客户端和服务器可以以任意喜欢的顺序读写：比如， 服务器可以在写入响应前等待接收所有的客户端消息，或者可以交替的读取和写入消息，或者其他读写的组合。 每个流中的消息顺序被预留。你可以通过在请求和响应前加 `stream` 关键字去制定方法的类型。
-
+   
    ```protobuf
    rpc RouteChat(stream RouteNote) returns (stream RouteNote) {}
    ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ## Reference Links
 
 > - https://www.topgoer.com/%E5%BE%AE%E6%9C%8D%E5%8A%A1/Protobuf%E8%AF%AD%E6%B3%95.html
 > - https://doc.oschina.net/grpc?t=60133
 > - https://github.com/grpc/grpc-go
-
