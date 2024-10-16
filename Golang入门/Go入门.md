@@ -2188,57 +2188,6 @@ func TestMain(m *testing.M) {
 }
 ```
 
-## 后续学习参考
-
-**Web框架：**
-
-1. beego：推荐入门
-2. gin：轻量级web开发
-3. echo：轻量级web开发
-4. lris：重量级web开发
-
-**微服务：**
-
-1. go kit
-2. Istio
-
-**容器编排：**
-
-1. Kubernetes
-2. docker swarm
-
-**服务发现：**consul
-
-**存储引擎：**
-
-1. 分布式k/v存储：etcd
-2. 分布式SQL存储：TIDB
-
-**中间件：**
-
-1. RPC框架：gRPC
-2. 游戏服务器：Leaf
-3. TCP长连接框架(轻量级服务器)：zinx
-4. redis集群：Codis
-5. 消息队列：nsq
-6. 静态建站：hugo
-
-**爬虫框架：**go query
-
-1. 
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
