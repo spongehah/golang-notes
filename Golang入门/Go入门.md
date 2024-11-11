@@ -488,7 +488,7 @@ func TestForRangeGoRuntineDelayBidding() {
 
 **怎么解决呢？**
 
-通过参数传递延迟读取的变量的值：改写如下：
+1. 通过参数传递延迟读取的变量的值：改写如下：
 
 ```go
 func TestForRangeGoRuntineDelayBidding() {
@@ -504,6 +504,26 @@ func TestForRangeGoRuntineDelayBidding() {
    wg.Wait()
 }
 ```
+
+2. 创建一个局部变量
+
+```go
+func TestForRangeGoRuntineDelayBidding() {
+   list := []int{1, 2, 3, 4, 5}
+   var wg sync.WaitGroup
+   for _, v := range list {
+      wg.Add(1)
+       tempV := v
+      go func(v int) {//通过参数传递
+         defer wg.Done()
+         fmt.Println(tempV)
+      }(v)
+   }
+   wg.Wait()
+}
+```
+
+
 
 ### 指针（引用传递）
 
@@ -1235,6 +1255,190 @@ func main() {
     myFunc(3.14)
 }
 ```
+
+
+
+### 泛型
+
+#### 为什么需要泛型
+
+假设我们需要实现一个反转切片的函数——`reverse`。
+
+```go
+func reverse(s []int) []int {
+	l := len(s)
+	r := make([]int, l)
+
+	for i, e := range s {
+		r[l-i-1] = e
+	}
+	return r
+}
+
+fmt.Println(reverse([]int{1, 2, 3, 4}))  // [4 3 2 1]
+```
+
+可是这个函数只能接收`[]int`类型的参数，如果我们想支持`[]float64`类型的参数，我们就需要再定义一个`reverseFloat64Slice`函数。
+
+从Go1.18开始，使用泛型就能够编写出适用所有元素类型的“普适版”`reverse`函数。
+
+```go
+func reverseWithGenerics[T any](s []T) []T {
+	l := len(s)
+	r := make([]T, l)
+
+	for i, e := range s {
+		r[l-i-1] = e
+	}
+	return r
+}
+```
+
+
+
+#### 类型参数
+
+跟普通函数一样，普通函数有 `形参` 和 `实参`，泛型函数有 `类型形参` 和 `类型实参`
+
+类型参数列表看起来像普通的参数列表，只不过它使用方括号（`[]`）而不是圆括号（`()`）。
+
+![image-20241025191855034](./images/Go入门.assets/image-20241025191855034.png)
+
+![image-20241025192221230](./images/Go入门.assets/image-20241025192221230.png)
+
+eg：借助泛型，我们可以声明一个适用于**一组类型**的`min`函数。
+
+```go
+func min[T int | float64](a, b T) T {
+	if a <= b {
+		return a
+	}
+	return b
+}
+```
+
+这次定义的`min`函数就同时支持`int`和`float64`两种类型，也就是说当调用`min`函数时，我们既可以传入`int`类型的参数。
+
+```go
+m1 := min[int](1, 2)  // 1
+```
+
+也可以传入`float64`类型的参数。
+
+```go
+m2 := min[float64](-0.1, -0.2)  // -0.2
+```
+
+类型实例化分两步进行：
+
+1. 首先，编译器在整个泛型函数或类型中将所有类型形参（type parameters）替换为它们各自的类型实参（type arguments）。
+2. 其次，编译器验证每个类型参数是否满足相应的约束。
+
+在成功实例化之后，我们将得到一个非泛型函数，它可以像任何其他函数一样被调用。例如：
+
+```go
+fmin := min[float64] // 类型实例化，编译器生成T=float64的min函数
+m2 = fmin(1.2, 2.3)  // 1.2
+```
+
+
+
+#### 类型推断
+
+constrains：https://pkg.go.dev/golang.org/x/exp/constraints 包提供了一些常用类型。
+
+1. constraints包的主要类型：
+```go
+// 支持所有整数类型
+type Integer interface {
+    Signed | Unsigned
+}
+
+// 支持所有有序类型(可比较大小的类型)
+type Ordered interface {
+    Integer | Float | ~string
+}
+
+// 示例使用
+func Min[T constraints.Ordered](a, b T) T {
+    if a < b {
+        return a
+    }
+    return b
+}
+```
+
+2. 类型推断的两种主要形式：
+
+**A. 函数参数类型推断：**
+
+```go
+// 不需要显式指定类型
+var x, y float64 = 1.0, 2.0
+min := Min(x, y)      // 编译器自动推断T为float64
+
+// 等价于显式指定：
+min := Min[float64](x, y)
+```
+
+**B. 约束类型推断：**
+
+```go
+// 自定义Point类型
+type Point []int32
+
+// 泛型Scale函数
+func Scale[E constraints.Integer](s []E, c E) []E // 这种方式将不能调用Point类型的方法，因为函数返回的是 []E 只能推断为 []int32 类型
+func Scale[S ~[]E, E constraints.Integer](s S, c E) S {	// 这种可以，函数返回的是 S 类型，代表推断为Point结构体
+    r := make(S, len(s))
+    for i, v := range s {
+        r[i] = v * c
+    }
+    return r
+}
+
+// 使用示例
+p := Point{1, 2, 3}
+scaled := Scale(p, 2)  // 编译器能推断出S=Point, E=int32
+```
+
+关键点解释：
+
+1. `~[]E` 表示底层类型是`[]E`的所有类型：
+```go
+type Point []int32    // Point的底层类型是[]int32
+type Vector []int32   // Vector的底层类型也是[]int32
+```
+
+2. 约束类型推断的工作过程：
+```go
+// 当调用Scale(p, 2)时:
+// 1. 从参数p推断出S的类型是Point
+// 2. 从约束~[]E知道Point必须是某个[]E类型
+// 3. 因为Point是[]int32，所以E必须是int32
+```
+
+3. 实际应用示例：
+```go
+// 通用的数据处理函数
+func Process[T any, S ~[]T](data S) S {
+    result := make(S, len(data))
+    for i, v := range data {
+        // 处理每个元素
+        result[i] = v
+    }
+    return result
+}
+
+// 可以处理自定义类型
+type IntList []int
+type FloatList []float64
+
+nums := IntList{1, 2, 3}
+processed := Process(nums)  // 自动推断T=int, S=IntList
+```
+
+
 
 ### 反射
 
@@ -2087,7 +2291,9 @@ Go语言中的测试依赖`go test`命令。编写测试代码和编写普通的
 >
 > 下面介绍三种单元测试函数的基本用法：
 
-#### 测试函数
+#### 三种单测函数类型
+
+##### 测试函数
 
 **单元测试对文件名、方法名、参数的限制：**
 
@@ -2107,7 +2313,7 @@ func TestDemo(t *testing.T) {
 
 使用 go test 命令运行单元测试
 
-#### 基准测试函数
+##### 基准测试函数
 
 **基准测试对文件名、方法名、参数的限制：**
 
@@ -2143,7 +2349,7 @@ BenchmarkSplit-8表示对Split函数进行基准测试，数字8表示GOMAXPROCS
 [-benchmem]参数的打印结果：
 112 B/op表示每次操作内存分配了112字节，3 allocs/op则表示每次操作进行了3次内存分配
 
-#### 示例函数
+##### 示例函数
 
 **示例函数对文件名、方法名、参数的限制：**
 
@@ -2187,6 +2393,109 @@ func TestMain(m *testing.M) {
     os.Exit(retCode)                           // 退出测试
 }
 ```
+
+
+
+#### 测试覆盖率
+
+Go提供内置功能来检查你的代码覆盖率，即使用`go test -cover`来查看测试覆盖率。
+
+```bash
+❯ go test -cover
+PASS
+coverage: 100.0% of statements
+ok      golang-unit-test-demo/base_demo 0.009s
+```
+
+Go还提供了一个额外的`-coverprofile`参数，用来将覆盖率相关的记录信息输出到一个文件。例如：
+
+```bash
+❯ go test -cover -coverprofile=c.out
+PASS
+coverage: 100.0% of statements
+ok      golang-unit-test-demo/base_demo 0.009s
+```
+
+上面的命令会将覆盖率相关的信息输出到当前文件夹下面的`c.out`文件中。
+
+```bash
+❯ tree .
+.
+├── c.out
+├── split.go
+└── split_test.go
+```
+
+然后我们执行`go tool cover -html=c.out`，使用`cover`工具来处理生成的记录信息，该命令会打开本地的浏览器窗口生成一个HTML报告。
+
+
+
+#### 断言 assert
+
+[testify](https://github.com/stretchr/testify)是一个社区非常流行的Go单元测试工具包，其中使用最多的功能就是它提供的断言工具——`testify/assert`或`testify/require`。
+
+使用示例：
+
+```go
+func TestSomething(t *testing.T) {
+  assert := assert.New(t)
+
+  // assert equality
+  assert.Equal(123, 123, "they should be equal")
+
+  // assert inequality
+  assert.NotEqual(123, 456, "they should not be equal")
+
+  // assert for nil (good for errors)
+  assert.Nil(object)
+
+  // assert for not nil (good when you expect something)
+  if assert.NotNil(object) {
+
+    // now we know that object isn't nil, we are safe to make
+    // further assertions without causing any errors
+    assert.Equal("Something", object.Value)
+  }
+}
+```
+
+
+
+#### 打桩 Stub
+
+打桩是指在测试过程中，用一些固定的返回值来替换某些方法或函数的实际实现。这个替代的方法/函数被称为"桩"（Stub）。
+
+使用场景：
+
+- 外部依赖：如数据库操作、网络请求、文件系统操作等
+- 复杂计算：当某个方法包含复杂计算时，可以用桩来简化
+- 特定状态：模拟特定的程序状态或条件
+
+与Mock的区别：
+
+- 桩（Stub）通常只提供预定义的返回值
+- Mock除了提供返回值外，还可以验证方法的调用情况（如调用次数、参数等）
+
+库选项：
+
+- https://github.com/golang/mock
+- https://github.com/agiledragon/gomonkey/
+- https://github.com/bouk/monkey
+   [monkey教程](https://www.liwenzhou.com/posts/Go/unit-test-4/)
+- https://github.com/smartystreets/goconvey      ⭐️⭐️⭐️⭐️⭐️
+   [goconvey教程](https://www.liwenzhou.com/posts/Go/unit-test-5/)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
