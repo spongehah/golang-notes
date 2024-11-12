@@ -1,3 +1,5 @@
+[TOC]
+
 ## slice
 
 ### slice 扩容
@@ -38,9 +40,29 @@ if cap > doublecap {
 
 
 
+## for 和 range 的性能比较
 
+> 参考链接：https://geektutu.com/post/hpg-range.html
 
+总结：
 
+- 遍历 []int, []*struct 的性能基本一致
+
+- 遍历 []struct 的性能 range 远低于for
+
+   - 并且：遍历 []struct 时，range 返回的是拷贝值，对返回的拷贝值进行修改不影响原来的切片。eg: 
+      ```go
+      persons := []struct{ no int }{{no: 1}, {no: 2}, {no: 3}}
+      for _, s := range persons {
+          s.no += 10
+      }
+      for i := 0; i < len(persons); i++ {
+          persons[i].no += 100
+      }
+      fmt.Println(persons) // [{101} {102} {103}]
+      ```
+
+      
 
 
 
